@@ -1,0 +1,406 @@
+swagger: "2.0"
+info:
+  version: "1.0.0"
+    title: "Template repo for NodeJs + TS"
+  description: "API doc is yet to be updated. Concepts are explained by taking TODO use case as an example"
+  termsOfService: ""
+  contact:
+    name: "Contact"
+    url: ""
+host: ""
+basePath: "/v1"
+tags:
+  - name: "server"
+    description: "It provides the status of the server"
+  - name: "setting"
+    description: "Operations about setting"
+schemes:
+  - "https"
+paths:
+  /health:
+    get:
+      tags:
+        - "server"
+      summary: "Returns the status of the api server"
+      description: "Returns the status, current version, release ID, and the uptime of the API server. It acts like a ping request to know if the API service is active or not."
+      operationId: "addPet"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      responses:
+        "200":
+          description: "Request is successful"
+          schema:
+            $ref: "#/definitions/HealthApiResponse"
+  /setting:
+    post:
+      tags:
+        - setting
+      summary: "Create a new setting"
+      description: "This API provides the functionality to create a new setting. It creates a setting with the value in setting_key for the provided setting_type and setting_type_ref."
+      operationId: "createSetting"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "header"
+          name: "app_id"
+          description: "A universally unique identifier of this API consumer"
+          required: true
+          type: "string"
+          format: "uuid"
+        - in: "body"
+          name: "body"
+          description: "The new setting object"
+          required: true
+          schema:
+            $ref: "#/definitions/SettingPayload"
+      responses:
+        "201":
+          description: "Successfully created the setting"
+        "400":
+          description: "Request payload is not valid"
+          schema:
+            $ref: "#/definitions/BadRequest"
+        "404":
+          description: "Requested resource not found"
+          schema:
+            $ref: "#/definitions/NotFoundError"
+        "422":
+          description: "The requested payload cannot be processed by the system"
+          schema:
+            $ref: "#/definitions/UnprocessableEntity"
+    get:
+      tags:
+        - setting
+      summary: "Fetch the settings"
+      description: "This API provides the functionality to fetch the existing setting using setting_key, provided setting_type and setting_type_ref."
+      operationId: "fetchSetting"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "header"
+          name: "app_id"
+          description: "A universally unique identifier of this API consumer"
+          required: true
+          type: "string"
+          format: "uuid"
+        - in: "query"
+          name: "setting_type"
+          description: "It signifies the group which the settings belong to"
+          required: true
+          type: "string"
+        - in: "query"
+          name: "setting_type_ref"
+          description: "The external id for which the setting is requested for"
+          required: true
+          type: "string"
+        - in: query
+          name: setting_key
+          description: The name of the setting.
+          required: false
+          type: string
+        - in: query
+          name: page_size
+          description: The number of records to be returned in the response.
+          required: false
+          type: integer
+          minimum: 1
+          default: 50
+        - in: query
+          name: page
+          description: The page number.
+          required: false
+          type: integer
+          minimum: 1
+          default: 1
+      responses:
+        "200":
+          description: "Success response from the server"
+          schema:
+            $ref: "#/definitions/GetSettingResponse"
+        "400":
+          description: "Request payload is not valid"
+          schema:
+            $ref: "#/definitions/BadRequest"
+        "404":
+          description: "Requested resource not found"
+          schema:
+            $ref: "#/definitions/NotFoundError"
+    patch:
+      tags:
+        - setting
+      summary: "Create a new setting"
+      description: "This API provides the functionality to update an existing setting. It updates a setting for setting_key for the provided setting_type and setting_type_ref."
+      operationId: "patchSetting"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "header"
+          name: "app_id"
+          description: "A universally unique identifier of this API consumer"
+          required: true
+          type: "string"
+          format: "uuid"
+        - in: "body"
+          name: "body"
+          description: "The new setting object"
+          required: true
+          schema:
+            $ref: "#/definitions/SettingPayload"
+      responses:
+        "200":
+          description: "Successfully created the setting"
+        "400":
+          description: "Request payload is not valid"
+          schema:
+            $ref: "#/definitions/BadRequest"
+        "404":
+          description: "Requested resource not found"
+          schema:
+            $ref: "#/definitions/NotFoundError"
+        "422":
+          description: "The requested payload cannot be processed by the system"
+          schema:
+            $ref: "#/definitions/UnprocessableEntity"
+definitions:
+  AppId:
+    type: "string"
+    format: "uuid"
+    description: "A universally unique identifier of this API consumer"
+  SettingType:
+    type: "string"
+    description: "It signifies the group which the settings belong to"
+    example: "proview_token"
+  SettingTypeRef:
+    type: "string"
+    description: "The external id for which the setting is requested for"
+    example: "U123456"
+  SettingKey:
+    type: "string"
+    description: "The name of the setting"
+    example: "proctor_rating_callback"
+  Value:
+    type: "string"
+    description: "The value of the setting"
+    example: ""
+  IsEnabled:
+    type: "boolean"
+    description: "Signifies if the setting should be enabled or disabled"
+    default: true
+  Setting:
+    type: "object"
+    required:
+      - "setting_key"
+      - "is_enabled"
+      - "value"
+    properties:
+      setting_key:
+        $ref: "#/definitions/SettingKey"
+      is_enabled:
+        $ref: "#/definitions/IsEnabled"
+      value:
+        $ref: "#/definitions/Value"
+  SettingPayload:
+    type: "object"
+    required:
+      - setting_type
+      - setting_type_ref
+      - setting_key
+    properties:
+      setting_type:
+        $ref: "#/definitions/SettingType"
+      setting_type_ref:
+        $ref: "#/definitions/SettingTypeRef"
+      setting_key:
+        $ref: "#/definitions/SettingKey"
+      value:
+        $ref: "#/definitions/Value"
+      is_enabled:
+        $ref: "#/definitions/IsEnabled"
+  GetSettingResponse:
+    type: "object"
+    required:
+      - "app_id"
+      - "setting_type"
+      - "setting_type_ref"
+      - "settings"
+    properties:
+      app_id:
+        $ref: "#/definitions/AppId"
+      setting_type:
+        $ref: "#/definitions/SettingType"
+      setting_type_ref:
+        $ref: "#/definitions/SettingTypeRef"
+      settings:
+        type: "array"
+        items:
+          $ref: "#/definitions/Setting"
+  BadRequest:
+    type: "object"
+    required:
+      - "name"
+      - "code"
+      - "status"
+      - "message"
+    properties:
+      name:
+        type: "string"
+        description: "The name of error"
+        example: "ValidationError"
+      code:
+        type: "string"
+        description: "The error code returned from the server"
+        example: "ER400"
+      status:
+        type: "integer"
+        description: "The status code for bad request returned from the server"
+        example: 400
+      message:
+        type: "string"
+        description: "The error message"
+        example: '"key" is required'
+      details:
+        type: "object"
+  NotFoundError:
+    type: "object"
+    required:
+      - "name"
+      - "code"
+      - "status"
+      - "message"
+    properties:
+      name:
+        type: "string"
+        description: "The name of error"
+        example: "Not Found"
+      code:
+        type: "string"
+        description: "The error code returned from the server"
+        example: "ER404"
+      status:
+        type: "integer"
+        description: "The status code for bad request returned from the server"
+        example: 404
+      message:
+        type: "string"
+        description: "The error message"
+        example: "Resource not found"
+      details:
+        type: "object"
+  UnprocessableEntity:
+    type: "object"
+    required:
+      - "name"
+      - "code"
+      - "status"
+      - "message"
+    properties:
+      name:
+        type: "string"
+        description: "The name of error"
+        example: "Unprocessable Entity"
+      code:
+        type: "string"
+        description: "The error code returned from the server"
+        example: "ER600"
+      status:
+        type: "integer"
+        description: "The status code for bad request returned from the server"
+        example: 422
+      message:
+        type: "string"
+        description: "The error message"
+        example: "Setting already exist"
+      details:
+        type: "object"
+  HealthApiResponse:
+    type: "object"
+    required:
+      - version
+      - releaseID
+      - appID
+      - details
+    properties:
+      version:
+        type: "string"
+        example: "1"
+      releaseID:
+        type: "string"
+        example: "1.0.0"
+      appID:
+        type: "string"
+        format: "uuid"
+      details:
+        type: "object"
+        required:
+          - uptime
+        properties:
+          uptime:
+            type: "object"
+            required:
+              - componentType
+              - metricValue
+              - metricUnit
+              - time
+            properties:
+              componentType:
+                type: "string"
+                example: "system"
+              metricValue:
+                type: "number"
+                example: 1453.574
+              metricUnit:
+                type: "string"
+                example: "seconds"
+              time:
+                type: "string"
+                format: "date-time"
+  ErrorCodes:
+    type: "object"
+    properties:
+      ER400:
+        type: "object"
+        properties:
+          message:
+            type: string
+            description: "Bad Request"
+          description:
+            type: string
+            description: "Request payload must be malformed"
+      ER404:
+        type: "object"
+        properties:
+          message:
+            type: string
+            description: "Resource not found"
+          description:
+            type: string
+            description: "Request resource do not exist"
+      ER600:
+        type: "object"
+        properties:
+          message:
+            type: string
+            description: "Setting already exist"
+          description:
+            type: string
+            description: "The setting that you are trying to create, it already exists for the combination provided in the payload"
+      ER601:
+        type: "object"
+        properties:
+          message:
+            type: string
+            description: "Value did not pass the validation rule"
+          description:
+            type: string
+            description: "The data provided is not a valid content. It should match the validation rule for the setting_key"
+      ER602:
+        type: "object"
+        properties:
+          message:
+            type: string
+            description: "The value is not required for specified setting_key"
+          description:
+            type: string
+            description: "Some settings does not need to have value associated with them. They just need to show if they are enabled or not."
